@@ -1,4 +1,4 @@
-//Authors: Kellen Strinden and Peter Hibbert
+//Authors: Kellen Strinden and Peter Hippert
 //Date Due: 5/7/2024
 //Purpose: CS 135 Final Project
 
@@ -71,7 +71,17 @@ int main(){
 }
 
 int mainMenu(){
-	//Written by Peter Hibbert
+	//Written by Peter Hippert
+	int choice;
+	printf("Please select an option:\n");
+	printf("1: Load Current Image\n");
+	printf("2: Display Current Image\n");
+	printf("3: Edit Image\n");
+	printf("4: Exit\n");
+	printf("Enter number of your choice: ");
+	scanf("%d",&choice);
+	printf("\n");
+	return choice;
 }
 
 int editMenu(){
