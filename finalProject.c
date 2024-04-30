@@ -6,11 +6,13 @@
 
 #define MAX_RESOLUTION 100
 #define DEFAULT_FILE "default.txt" //Added a default file
+#define FILE_NAME "file.txt" //Added file for testing loadImage function
 
 int mainMenu();
 int editMenu();
-//Add new image function here
 int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]);
+void newImage(FILE* fp, int size);
+void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]);
 
 int main(){
 	//Variable Declaration
@@ -37,7 +39,7 @@ int main(){
 		switch(userChoice){
 			case 1:
 				//Load New Image
-				
+				newImage(currentImage,MAX_RESOLUTION);
 				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageRaw, imageProcessed);
 				if(imgProcessTest == 1){
 					//Load default image in the case of processing error
@@ -45,6 +47,7 @@ int main(){
 				break;
 			case 2:
 				//Display Current Image
+				displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageRaw, imageProcessed);
 				break;
 			case 3:
 				//Edit Current Image
@@ -179,11 +182,25 @@ int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArra
 	
 	return 0;
 }
+void newImage(FILE* fp, int size){
+	char fileName[size];
+	//printf("Enter file name:\n");
+	//scanf("%s",fileName);
+	//printf("%s\n",fileName);
+	fp = fopen(FILE_NAME,"r");
+	if (fp==NULL){
+		printf("Invalid File\n");
+		fp = fopen(DEFAULT_FILE,"r");
+		return;
+	}
+}
 
-
-
-
-
-
-
+void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]){
+	imgProcess(filePtr,imageX,imageY,maxRes,imgArray,resultArray);
+	for (int rowInd =0;rowInd<*imageX;rowInd++){
+		for (int colInd=0;colInd<*imageY;colInd++){
+			printf("%c",resultArray[rowInd][colInd]);
+		}
+	}
+}
 
