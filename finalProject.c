@@ -17,7 +17,7 @@ void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgA
 int main(){
 	//Variable Declaration
 	int userChoice, editChoice, lengthX, lengthY, imgProcessTest;
-	char imageRaw[MAX_RESOLUTION][MAX_RESOLUTION], imageProcessed[MAX_RESOLUTION][MAX_RESOLUTION];
+	char imageData[MAX_RESOLUTION][MAX_RESOLUTION];
 	FILE* currentImage = fopen(DEFAULT_FILE, "r");
 	
 	//Default Image Verification and Processing
@@ -40,7 +40,7 @@ int main(){
 			case 1:
 				//Load New Image
 				newImage(currentImage,MAX_RESOLUTION);
-				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageRaw, imageProcessed);
+				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 				if(imgProcessTest == 1){
 					//Load default image in the case of processing error
 				}
@@ -128,22 +128,22 @@ int editMenu(){
 	return result;
 }
 
-
-
 int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]){
+	//Written by Kellen Strinden
+	
 	int row, col, result;
+	char tempArray[maxRes][maxRes];
 	
 	//Resets the image arrays to null state
 	for(row = 0; row < maxRes; row++){
 		for(col = 0; col < maxRes; col++){
-			imgArray[col][row] = '\0';
 			resultArray[col][row] = '\0';
 		}
 	}
 	
 	//Scans through the current file to get raw image data
 	for(row = 0; row < maxRes; row++){
-		fgets(imgArray[row], (maxRes + 1), filePtr);
+		fgets(tempArray[row], (maxRes + 1), filePtr);
 	}
 	
 	//Calculates the image length and width
@@ -154,53 +154,62 @@ int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArra
 	*imageX = col;
 	
 	//Processes the image into the desired format
-	for(row = 0; row < *imageY; row++){
-		for(col = 0; col < *imageX; col++){
-			switch(imgArray[col][row]){
-				case '0':
-					resultArray[row][col] = ' ';
-					break;
-				case '1':
-					resultArray[row][col] = '.';
-					break;
-				case '2':
-					resultArray[row][col] = 'o';
-					break;
-				case '3':
-					resultArray[row][col] = 'O';
-					break;
-				case '4':
-					resultArray[row][col] = '0';
-					break;
-				default:
-					printf("Error Reading from file. Loading Default Image.");
-					return 1;
-					break;
+	for(row = 0; row < *lengthY; row++){
+		for(col = 0; col < *lengthX; col++){
+		      	switch(imgArray[row][col]){
+			        case '0':
+			          resArray[row][col] = 0;
+			          break;
+			        case '1':
+			          resArray[row][col] = 1;
+			          break;
+			        case '2':
+			          resArray[row][col] = 2;
+			          break;
+			        case '3':
+			          resArray[row][col] = 3;
+			          break;
+			        case '4':
+			          resArray[row][col] = 4;
+			          break;
+			        default:
+			          //Returns a fail state for the function
+			          return 1;
+			          break;
 			}
 		}
 	}
 	
 	return 0;
 }
+
 void newImage(FILE* fp, int size){
+	//Written by Peter Hippert
+	
 	char fileName[size];
 	//printf("Enter file name:\n");
 	//scanf("%s",fileName);
 	//printf("%s\n",fileName);
-	fp = fopen(FILE_NAME,"r");
-	if (fp==NULL){
+	fp = fopen(fileName, "r");
+	if (fp == NULL){
 		printf("Invalid File\n");
-		fp = fopen(DEFAULT_FILE,"r");
+		fp = fopen(DEFAULT_FILE, "r");
 		return;
 	}
 }
 
 void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]){
+	//Written by Peter Hippert
+
+	//Currently disfunctional due to imgProcess changes. Edited version needs to convert integer data to printed character for ease of file saving
+	
 	imgProcess(filePtr,imageX,imageY,maxRes,imgArray,resultArray);
-	for (int rowInd =0;rowInd<*imageX;rowInd++){
-		for (int colInd=0;colInd<*imageY;colInd++){
-			printf("%c",resultArray[rowInd][colInd]);
+	for (int rowInd = 0;rowInd < *imageX; rowInd++){
+		for (int colInd= 0;colInd < *imageY; colInd++){
+			printf("%c ",resultArray[rowInd][colInd]);
 		}
+
+		printf("\n");
 	}
 }
 
