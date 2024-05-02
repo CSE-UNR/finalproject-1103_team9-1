@@ -7,17 +7,22 @@
 #define MAX_RESOLUTION 100
 #define DEFAULT_FILE "default.txt" //Added a default file
 #define FILE_NAME "file.txt" //Added file for testing loadImage function
+#define FILE_NAME_MAX 50
 
 int mainMenu();
 int editMenu();
-int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]);
+int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, int resultArray[][maxRes]);
 void newImage(FILE* fp, int size);
-void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]);
+void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, int imgArray[][maxRes]);
+//cropCurrentImage();
+void dimCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
+void brightenCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
+//rotateCurrentImage();
+void saveImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
 
 int main(){
 	//Variable Declaration
-	int userChoice, editChoice, lengthX, lengthY, imgProcessTest;
-	char imageData[MAX_RESOLUTION][MAX_RESOLUTION];
+	int userChoice, editChoice, lengthX, lengthY, imgProcessTest, imageData[MAX_RESOLUTION][MAX_RESOLUTION], imageEdited[MAX_RESOLUTION][MAX_RESOLUTION];
 	FILE* currentImage = fopen(DEFAULT_FILE, "r");
 	
 	//Default Image Verification and Processing
@@ -26,7 +31,7 @@ int main(){
 		return 0;
 	}
 	
-	imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageRaw, imageProcessed);
+	imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 	
 	//Main Program Handling
 	printf("--------------------------------------------------\n");
@@ -39,15 +44,16 @@ int main(){
 		switch(userChoice){
 			case 1:
 				//Load New Image
-				newImage(currentImage,MAX_RESOLUTION);
+				fclose(currentImage);
+				newImage(currentImage, FILE_NAME_MAX);
 				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 				if(imgProcessTest == 1){
-					//Load default image in the case of processing error
+					newImage(DEFAULT_FILE, FILE_NAME_MAX);
 				}
 				break;
 			case 2:
 				//Display Current Image
-				displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageRaw, imageProcessed);
+				displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 				break;
 			case 3:
 				//Edit Current Image
@@ -59,9 +65,16 @@ int main(){
 						break;
 					case 2:
 						//Dim Current Image
+						printf("Dimming Current Image...\n\n");\
+						dimCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
+						displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+						saveImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 						break;
 					case 3:
 						//Brighten Current Image
+						printf("Brightening Current Image...\n\n");\
+						brightenCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
+						displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 						break;
 					case 4:
 						//Rotate Current Image
@@ -128,7 +141,7 @@ int editMenu(){
 	return result;
 }
 
-int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]){
+int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, int resultArray[][maxRes]){
 	//Written by Kellen Strinden
 	
 	int row, col, result;
@@ -147,30 +160,38 @@ int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArra
 	}
 	
 	//Calculates the image length and width
-	for(row = 0; (imgArray[row][0] != '\0')&&(imgArray[row][0] != '\n'); row++){}
+	for(row = 0; (tempArray[row][0] != '\0')&&(tempArray[row][0] != '\n'); row++){}
 	*imageY = row;
 	
-	for(col = 0; (imgArray[0][col] != '\0')&&(imgArray[0][col] != '\n'); col++){}
+	for(col = 0; (tempArray[0][col] != '\0')&&(tempArray[0][col] != '\n'); col++){}
 	*imageX = col;
 	
+	/*for(row = 0; row < *imageY; row++){
+    		for(col = 0; col < *imageX; col++){
+      			printf("%c ", tempArray[row][col]);
+    		}
+    		printf("\n");
+  	}*/
+	
+	
 	//Processes the image into the desired format
-	for(row = 0; row < *lengthY; row++){
-		for(col = 0; col < *lengthX; col++){
-		      	switch(imgArray[row][col]){
+	for(row = 0; row < *imageY; row++){
+		for(col = 0; col < *imageX; col++){
+		      	switch(tempArray[row][col]){
 			        case '0':
-			          resArray[row][col] = 0;
+			          resultArray[row][col] = 0;
 			          break;
 			        case '1':
-			          resArray[row][col] = 1;
+			          resultArray[row][col] = 1;
 			          break;
 			        case '2':
-			          resArray[row][col] = 2;
+			          resultArray[row][col] = 2;
 			          break;
 			        case '3':
-			          resArray[row][col] = 3;
+			          resultArray[row][col] = 3;
 			          break;
 			        case '4':
-			          resArray[row][col] = 4;
+			          resultArray[row][col] = 4;
 			          break;
 			        default:
 			          //Returns a fail state for the function
@@ -187,29 +208,123 @@ void newImage(FILE* fp, int size){
 	//Written by Peter Hippert
 	
 	char fileName[size];
-	//printf("Enter file name:\n");
-	//scanf("%s",fileName);
+	
+	printf("Enter file name:\n");
+	scanf("%s", fileName);
 	//printf("%s\n",fileName);
+	
 	fp = fopen(fileName, "r");
+	
 	if (fp == NULL){
 		printf("Invalid File\n");
+		printf("--------------------------------------------------\n");
 		fp = fopen(DEFAULT_FILE, "r");
 		return;
+	}else if(fp != NULL){
+		printf("File Loaded Successfully.\n");
+		printf("--------------------------------------------------\n");
 	}
 }
 
-void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, char imgArray[][maxRes], char resultArray[][maxRes]){
+void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, int imgArray[][maxRes]){
 	//Written by Peter Hippert
-
-	//Currently disfunctional due to imgProcess changes. Edited version needs to convert integer data to printed character for ease of file saving
 	
-	imgProcess(filePtr,imageX,imageY,maxRes,imgArray,resultArray);
 	for (int rowInd = 0;rowInd < *imageX; rowInd++){
 		for (int colInd= 0;colInd < *imageY; colInd++){
-			printf("%c ",resultArray[rowInd][colInd]);
+			//printf("%c ",resultArray[rowInd][colInd]);
+			switch(imgArray[rowInd][colInd]){
+				case 0:
+					printf("  ");
+					break;
+				case 1:
+					printf(". ");
+					break;
+				case 2:
+					printf("o ");
+					break;
+				case 3:
+					printf("O ");
+					break;
+				case 4:
+					printf("0 ");
+					break;
+				default:
+					break;
+			}
 		}
 
 		printf("\n");
 	}
+	
+	printf("--------------------------------------------------\n");
 }
+
+//cropCurrentImage();
+
+void dimCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
+	//Written by Kellen Strinden
+	
+	int row, col;
+
+  	for(row = 0; row < lengthY; row++){
+    		for(col = 0; col < lengthX; col++){
+      			imgArray[row][col]--;
+
+      			if(imgArray[row][col] < 0){
+        			imgArray[row][col] = 0;
+      			}
+    		}
+  	}
+}
+
+void brightenCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
+	//Written by Kellen Strinden
+	
+	int row, col;
+
+  	for(row = 0; row < lengthY; row++){
+    		for(col = 0; col < lengthX; col++){
+      			imgArray[row][col]++;
+
+      			if(imgArray[row][col] > 4){
+        			imgArray[row][col] = 4;
+      			}
+    		}
+  	}
+}
+
+void saveImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
+	//Written by Kellen Strinden
+	
+	char fileName[FILE_NAME_MAX], saveChoice;
+	int row, col;
+	
+	printf("Would you like to save the edited image (Y/N): ");
+	scanf(" %c", &saveChoice);
+	switch(saveChoice){
+		case 'Y':
+		case 'y':
+			printf("Enter the save file name: ");
+			scanf("%s", fileName);
+			
+			FILE* saveFile = fopen(fileName, "w");
+			
+			for(row = 0; row < lengthY; row++){
+				for(col = 0; col < lengthX; col++){
+					fprintf(saveFile, "%d", imgArray[row][col]);
+				}
+				fprintf(saveFile, "\n");
+			}
+			fclose(saveFile);
+			break;
+		default:
+			break;
+	}
+	
+	printf("--------------------------------------------------\n");
+}
+
+
+
+
 
