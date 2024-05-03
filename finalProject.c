@@ -13,8 +13,8 @@ int mainMenu();
 int editMenu();
 int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, int resultArray[][maxRes]);
 void newImage(FILE* fp, int size);
-void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, int imgArray[][maxRes]);
-//cropCurrentImage();
+void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes]);
+void cropCurrentImage();
 void dimCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
 void brightenCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
 //rotateCurrentImage();
@@ -48,12 +48,12 @@ int main(){
 				newImage(currentImage, FILE_NAME_MAX);
 				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 				if(imgProcessTest == 1){
-					newImage(DEFAULT_FILE, FILE_NAME_MAX);
+					currentImage = fopen(DEFAULT_FILE,"r");
 				}
 				break;
 			case 2:
 				//Display Current Image
-				displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+				displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 				break;
 			case 3:
 				//Edit Current Image
@@ -62,19 +62,20 @@ int main(){
 				switch(editChoice){
 					case 1:
 						//Crop Current Image
+						cropCurrentImage(lengthX,lengthY,MAX_RESOLUTION,imageData,imageEdited);
 						break;
 					case 2:
 						//Dim Current Image
 						printf("Dimming Current Image...\n\n");\
 						dimCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
-						displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 						saveImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 						break;
 					case 3:
 						//Brighten Current Image
 						printf("Brightening Current Image...\n\n");\
 						brightenCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
-						displayImage(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 						break;
 					case 4:
 						//Rotate Current Image
@@ -226,11 +227,11 @@ void newImage(FILE* fp, int size){
 	}
 }
 
-void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, int imgArray[][maxRes]){
+void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes]){
 	//Written by Peter Hippert
 	
-	for (int rowInd = 0;rowInd < *imageX; rowInd++){
-		for (int colInd= 0;colInd < *imageY; colInd++){
+	for (int rowInd = 0;rowInd < imageX; rowInd++){
+		for (int colInd= 0;colInd < imageY; colInd++){
 			//printf("%c ",resultArray[rowInd][colInd]);
 			switch(imgArray[rowInd][colInd]){
 				case 0:
@@ -259,7 +260,45 @@ void displayImage(FILE* filePtr, int* imageX, int* imageY, int maxRes, int imgAr
 	printf("--------------------------------------------------\n");
 }
 
-//cropCurrentImage();
+void cropCurrentImage(int row,int column,int maxRes,int ogArray[][maxRes],int newArray[][maxRes]){
+	int minCol,maxCol,minRow,maxRow;
+	int rowCount=0,colCount=0;
+	
+	printf(" 1");
+	for (int i = 0; i<(column-1)*2;i++){
+		printf(" ");
+	}
+	printf("%d\n",row);
+	printf("1 ");
+	displayImage(row,column,MAX_RESOLUTION,ogArray);
+	printf("%d\n",row);
+	printf("The image you want to crop is %d x %d.\n",row,column);
+	printf("The row and column values start in the upper lefthand corner.\n\n");
+	printf("Which column do you want to be the new left side? ");
+	scanf("%d",&minCol);
+	printf("\nWhich column do you want to be the new right side? ");
+	scanf("%d",&maxCol);
+	printf("\nWhich row do you want to be the new top? ");
+	scanf("%d",&minRow);
+	printf("\nWhich row do you want to be the new bottom? ");
+	scanf("%d",&maxRow);
+	
+	for (int i = minRow-1;i<maxRow;i++){
+		colCount = 0;
+		for (int j = minCol-1;j<maxCol;j++){
+			newArray[rowCount][colCount] = ogArray[i][j]; 
+			//printf("%d ",ogArray[i][j]);
+			//printf("%d ",newArray[rowCount][colCount]);
+			colCount++;
+			//printf("%d ",colCount);
+		}
+		rowCount++;
+		//printf("%d ",rowCount);
+	}
+	printf("\n");
+	displayImage(rowCount,colCount,MAX_RESOLUTION,newArray);
+	saveImage(rowCount,colCount,maxRes,newArray);
+}
 
 void dimCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
 	//Written by Kellen Strinden
