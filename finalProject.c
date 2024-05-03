@@ -13,7 +13,7 @@ int mainMenu();
 int editMenu();
 int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, int resultArray[][maxRes]);
 void newImage(FILE* fp, int size);
-void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes]);
+void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes],int cropCondition);
 void cropCurrentImage();
 void dimCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
 void brightenCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]);
@@ -50,10 +50,11 @@ int main(){
 				if(imgProcessTest == 1){
 					currentImage = fopen(DEFAULT_FILE,"r");
 				}
+				fclose(currentImage);
 				break;
 			case 2:
 				//Display Current Image
-				displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
+				displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData,0);
 				break;
 			case 3:
 				//Edit Current Image
@@ -68,14 +69,15 @@ int main(){
 						//Dim Current Image
 						printf("Dimming Current Image...\n\n");\
 						dimCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
-						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
+						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData,0);
 						saveImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 						break;
 					case 3:
 						//Brighten Current Image
 						printf("Brightening Current Image...\n\n");\
 						brightenCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
-						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
+						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData,0);
+						saveImage(lengthX, lengthY, MAX_RESOLUTION, imageData);
 						break;
 					case 4:
 						//Rotate Current Image
@@ -227,36 +229,71 @@ void newImage(FILE* fp, int size){
 	}
 }
 
-void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes]){
+void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes],int cropCondition){
 	//Written by Peter Hippert
-	
-	for (int rowInd = 0;rowInd < imageX; rowInd++){
-		for (int colInd= 0;colInd < imageY; colInd++){
-			//printf("%c ",resultArray[rowInd][colInd]);
-			switch(imgArray[rowInd][colInd]){
-				case 0:
-					printf("  ");
-					break;
-				case 1:
-					printf(". ");
-					break;
-				case 2:
-					printf("o ");
-					break;
-				case 3:
-					printf("O ");
-					break;
-				case 4:
-					printf("0 ");
-					break;
-				default:
-					break;
+	//Check to see if display is within crop function. Special Formatting needed if yes
+	if (cropCondition==1) {
+		for (int rowInd = 0;rowInd < imageX; rowInd++){
+			if (rowInd>0&&rowInd<imageX){
+				printf(" ");
 			}
-		}
+			/*if (rowInd==imageX-1){
+				printf("%d",imageY);
+			}*/
+			for (int colInd= 0;colInd < imageY; colInd++){
+				//printf("%c ",resultArray[rowInd][colInd]);
+				switch(imgArray[rowInd][colInd]){
+					case 0:
+						printf("  ");
+						break;
+					case 1:
+						printf(". ");
+						break;
+					case 2:
+						printf("o ");
+						break;
+					case 3:
+						printf("O ");
+						break;
+					case 4:
+						printf("0 ");
+						break;
+					default:
+						break;
+				}
+			}
 
-		printf("\n");
+			printf("\n");
+		}
 	}
-	
+	else{
+		for (int rowInd = 0;rowInd < imageX; rowInd++){
+			for (int colInd= 0;colInd < imageY; colInd++){
+				//printf("%c ",resultArray[rowInd][colInd]);
+				switch(imgArray[rowInd][colInd]){
+					case 0:
+						printf("  ");
+						break;
+					case 1:
+						printf(". ");
+						break;
+					case 2:
+						printf("o ");
+						break;
+					case 3:
+						printf("O ");
+						break;
+					case 4:
+						printf("0 ");
+						break;
+					default:
+						break;
+				}
+			}
+
+			printf("\n");
+		}
+	}
 	printf("--------------------------------------------------\n");
 }
 
@@ -265,13 +302,12 @@ void cropCurrentImage(int row,int column,int maxRes,int ogArray[][maxRes],int ne
 	int rowCount=0,colCount=0;
 	
 	printf(" 1");
-	for (int i = 0; i<(column-1)*2;i++){
+	for (int i = 0; i<((row-2)*2)+1;i++){
 		printf(" ");
 	}
 	printf("%d\n",row);
-	printf("1 ");
-	displayImage(row,column,MAX_RESOLUTION,ogArray);
-	printf("%d\n",row);
+	printf("1");
+	displayImage(row,column,MAX_RESOLUTION,ogArray,1);
 	printf("The image you want to crop is %d x %d.\n",row,column);
 	printf("The row and column values start in the upper lefthand corner.\n\n");
 	printf("Which column do you want to be the new left side? ");
@@ -296,7 +332,7 @@ void cropCurrentImage(int row,int column,int maxRes,int ogArray[][maxRes],int ne
 		//printf("%d ",rowCount);
 	}
 	printf("\n");
-	displayImage(rowCount,colCount,MAX_RESOLUTION,newArray);
+	displayImage(rowCount,colCount,MAX_RESOLUTION,newArray,0);
 	saveImage(rowCount,colCount,maxRes,newArray);
 }
 
