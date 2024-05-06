@@ -1,12 +1,12 @@
 //Authors: Kellen Strinden and Peter Hippert
 //Date Due: 5/7/2024
+//File Name: finalProject.c
 //Purpose: CS 135 Final Project
 
 #include <stdio.h>
 
-#define MAX_RESOLUTION 100
-#define DEFAULT_FILE "default.txt" //Added a default file
-#define FILE_NAME "file.txt" //Added file for testing loadImage function
+#define MAX_RESOLUTION 500
+#define DEFAULT_FILE "default.txt"
 #define FILE_NAME_MAX 50
 
 int mainMenu();
@@ -47,20 +47,25 @@ int main(){
 				fclose(currentImage);
 				newImage(currentImage, FILE_NAME_MAX);
 				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+				
+				//Checks load status of the image. If loading fails, the default file is loaded
 				if(imgProcessTest == 1){
-					currentImage = fopen(DEFAULT_FILE,"r");
+					printf("Image Loading Error. Loading Default File\n");
+					printf("--------------------------------------------------\n");
+					currentImage = fopen(DEFAULT_FILE, "r");
+					imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
 				}
-				fclose(currentImage);
 				break;
 			case 2:
 				//Display Current Image
 				printf("Displaying Current Image.\n\n");
-				displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData,0);
+				displayImage(lengthX, lengthY, MAX_RESOLUTION, imageData, 0);
 				break;
 			case 3:
 				//Edit Current Image
 				editChoice = editMenu();
 				
+				//Determines function based on choice from editMenu()
 				switch(editChoice){
 					case 1:
 						//Crop Current Image
@@ -68,14 +73,14 @@ int main(){
 						break;
 					case 2:
 						//Dim Current Image
-						printf("Dimming Current Image...\n\n");\
+						printf("Dimming Current Image...\n\n");
 						dimCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData, imageEdited);
 						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageEdited, 0);
 						saveImage(lengthX, lengthY, MAX_RESOLUTION, imageEdited);
 						break;
 					case 3:
 						//Brighten Current Image
-						printf("Brightening Current Image...\n\n");\
+						printf("Brightening Current Image...\n\n");
 						brightenCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData, imageEdited);
 						displayImage(lengthX, lengthY, MAX_RESOLUTION, imageEdited, 0);
 						saveImage(lengthX, lengthY, MAX_RESOLUTION, imageEdited);
@@ -83,6 +88,8 @@ int main(){
 					case 4:
 						//Rotate Current Image
 						rotateCurrentImage(lengthX, lengthY, MAX_RESOLUTION, imageData, imageEdited);
+						displayImage(lengthY, lengthX, MAX_RESOLUTION, imageEdited, 0);
+						saveImage(lengthY, lengthX, MAX_RESOLUTION, imageEdited);
 						break;
 					case 5:
 						//Exit To Main Menu
@@ -108,20 +115,28 @@ int main(){
 		}
 	}while(userChoice != 4);
 	
+	
+	fclose(currentImage);
 	return 0;
 }
 
 int mainMenu(){
 	//Written by Peter Hippert
+	
 	int choice;
+	
+	//Prompts user to choose a menu option
 	printf("Please select an option:\n");
 	printf("  1: Load Current Image\n");
 	printf("  2: Display Current Image\n");
 	printf("  3: Edit Image\n");
 	printf("  4: Exit\n");
+	
 	printf("Choice: ");
 	scanf("%d", &choice);
 	printf("--------------------------------------------------\n");
+	
+	//Returns the integer value of the user's choice for menu logic
 	return choice;
 }
 
@@ -171,39 +186,29 @@ int imgProcess(FILE* filePtr, int* imageX, int* imageY, int maxRes, int resultAr
 	for(col = 0; (tempArray[0][col] != '\0')&&(tempArray[0][col] != '\n'); col++){}
 	*imageX = col;
 	
-	for(row = 0; row < *imageY; row++){
-    		for(col = 0; col < *imageX; col++){
-      			printf("%c ", tempArray[row][col]);
-    		}
-    		printf("\n");
-  	}
-  	
-  	printf("\nRow: %d, Col: %d\n", *imageY, *imageX);
-	
-	
 	//Processes the image into the desired format
 	for(row = 0; row < *imageY; row++){
 		for(col = 0; col < *imageX; col++){
 		      	switch(tempArray[row][col]){
 			        case '0':
-			          resultArray[row][col] = 0;
-			          break;
+			        	resultArray[row][col] = 0;
+			        	break;
 			        case '1':
-			          resultArray[row][col] = 1;
-			          break;
+			        	resultArray[row][col] = 1;
+			        	break;
 			        case '2':
-			          resultArray[row][col] = 2;
-			          break;
+					resultArray[row][col] = 2;
+					break;
 			        case '3':
-			          resultArray[row][col] = 3;
-			          break;
+					resultArray[row][col] = 3;
+					break;
 			        case '4':
-			          resultArray[row][col] = 4;
-			          break;
+					resultArray[row][col] = 4;
+					break;
 			        default:
-			          //Returns a fail state for the function
-			          return 1;
-			          break;
+					//Returns a fail state for the function
+					return 1;
+					break;
 			}
 		}
 	}
@@ -216,17 +221,18 @@ void newImage(FILE* fp, int size){
 	
 	char fileName[size];
 	
-	printf("Enter file name:\n");
+	//Prompts user to enter a file name
+	printf("Enter file name (i.e. example.txt): ");
 	scanf("%s", fileName);
-	//printf("%s\n",fileName);
 	
+	//Attempts to open the user-provided file and verifies it
 	fp = fopen(fileName, "r");
 	
+	printf("\n");
 	if (fp == NULL){
-		printf("Invalid File\n");
+		printf("Invalid File. Opening Default File.\n");
 		printf("--------------------------------------------------\n");
 		fp = fopen(DEFAULT_FILE, "r");
-		return;
 	}else if(fp != NULL){
 		printf("File Loaded Successfully.\n");
 		printf("--------------------------------------------------\n");
@@ -238,6 +244,7 @@ void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes],int
 	
 	//Check to see if display is within crop function. Special Formatting needed if yes
 	if (cropCondition==1) {
+		//Displays image for the cropCurrentImage function
 		for (int rowInd = 0;rowInd < imageY; rowInd++){
 			if (rowInd==imageY-1){
 				printf("%d",imageY);
@@ -246,7 +253,6 @@ void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes],int
 			}
 			
 			for (int colInd= 0;colInd < imageX; colInd++){
-				//printf("%c ",resultArray[rowInd][colInd]);
 				switch(imgArray[rowInd][colInd]){
 					case 0:
 						printf("  ");
@@ -271,9 +277,9 @@ void displayImage(int imageX, int imageY, int maxRes, int imgArray[][maxRes],int
 			printf("\n");
 		}
 	}else{
+		//Displays the current image for all other use cases
 		for (int rowInd = 0;rowInd < imageY; rowInd++){
 			for (int colInd= 0;colInd < imageX; colInd++){
-				//printf("%c ",resultArray[rowInd][colInd]);
 				switch(imgArray[rowInd][colInd]){
 					case 0:
 						printf("  ");
@@ -307,14 +313,19 @@ void cropCurrentImage(int row,int column,int maxRes,int ogArray[][maxRes],int ne
 	int minCol,maxCol,minRow,maxRow;
 	int rowCount=0,colCount=0;
 	
+	//Shows the column number of the left and right boundaries
 	printf(" 1");
 	for (int i = 0; i<((row-2)*2)+1;i++){
 		printf(" ");
 	}
 	printf("%d\n",row);
+	
+	//Shows the row number of the top and bottom boundaries and displays the unedited image
 	printf("1");
-	displayImage(row,column,MAX_RESOLUTION,ogArray,1);
-	printf("The image you want to crop is %d x %d.\n",row,column);
+	displayImage(row, column, MAX_RESOLUTION, ogArray, 1);
+	
+	//Prompts user for cropping choices
+	printf("The image you want to crop is %d x %d.\n", row, column);
 	printf("The row and column values start in the upper lefthand corner.\n\n");
 	printf("Which column do you want to be the new left side? ");
 	scanf("%d",&minCol);
@@ -325,20 +336,18 @@ void cropCurrentImage(int row,int column,int maxRes,int ogArray[][maxRes],int ne
 	printf("\nWhich row do you want to be the new bottom? ");
 	scanf("%d",&maxRow);
 	
+	//Fills the cropped image array with cropped image values
 	for (int i = minRow-1;i<maxRow;i++){
 		colCount = 0;
 		for (int j = minCol-1;j<maxCol;j++){
 			newArray[rowCount][colCount] = ogArray[i][j]; 
-			//printf("%d ",ogArray[i][j]);
-			//printf("%d ",newArray[rowCount][colCount]);
 			colCount++;
-			//printf("%d ",colCount);
 		}
 		rowCount++;
-		//printf("%d ",rowCount);
 	}
-	printf("\nCropped Image:\n\n");
 	
+	//Displays cropped image to user and prompts them to save the image
+	printf("\nCropped Image:\n\n");
 	displayImage(rowCount,colCount,MAX_RESOLUTION,newArray,0);
 	saveImage(rowCount,colCount,maxRes,newArray);
 }
@@ -350,8 +359,10 @@ void dimCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes
 
   	for(row = 0; row < lengthY; row++){
     		for(col = 0; col < lengthX; col++){
+      			//Reduces the integer value of every array element by one
       			imgEdited[row][col] = imgArray[row][col] - 1;
 
+			//Checks the new integer values and sets them to the minimum value if it is exceeded
       			if(imgEdited[row][col] < 0){
         			imgEdited[row][col] = 0;
       			}
@@ -366,8 +377,10 @@ void brightenCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][m
 
   	for(row = 0; row < lengthY; row++){
     		for(col = 0; col < lengthX; col++){
+      			//Increases the integer value of every array element by one
       			imgEdited[row][col] = imgArray[row][col] + 1;
 
+			//Checks the new integer values and sets them to the maximum value if it is exceeded
       			if(imgEdited[row][col] > 4){
         			imgEdited[row][col] = 4;
       			}
@@ -386,8 +399,10 @@ void rotateCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][max
 			imgEdited[col][row] = imgArray[lengthY - 1 - row][col];
 		}
 	}
+	
+	/*Displays the rotated image and 
 	displayImage(lengthY, lengthX, maxRes, imgEdited, 0);
-	saveImage(lengthY, lengthX, maxRes, imgEdited);
+	saveImage(lengthY, lengthX, maxRes, imgEdited);*/
 }
 
 void saveImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
@@ -396,8 +411,11 @@ void saveImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
 	char fileName[FILE_NAME_MAX], saveChoice;
 	int row, col;
 	
+	//Prompts the user to save the image
 	printf("Would you like to save the edited image (Y/N): ");
 	scanf(" %c", &saveChoice);
+	
+	//Determines whether or not to save the image based on user input
 	switch(saveChoice){
 		case 'Y':
 		case 'y':
@@ -420,8 +438,3 @@ void saveImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
 	
 	printf("--------------------------------------------------\n");
 }
-
-
-
-
-
