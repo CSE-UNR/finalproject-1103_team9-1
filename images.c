@@ -117,8 +117,6 @@ int main(){
 		}
 	}while(userChoice != 4);
 	
-	
-	fclose(currentImage);
 	return 0;
 }
 
