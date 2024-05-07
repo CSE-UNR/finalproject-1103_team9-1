@@ -32,6 +32,7 @@ int main(){
 	}
 	
 	imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+	fclose(currentImage);
 	
 	//Main Program Handling
 	printf("--------------------------------------------------\n");
@@ -44,9 +45,9 @@ int main(){
 		switch(userChoice){
 			case 1:
 				//Load New Image
-				fclose(currentImage);
 				newImage(currentImage, FILE_NAME_MAX);
 				imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+				fclose(currentImage);
 				
 				//Checks load status of the image. If loading fails, the default file is loaded
 				if(imgProcessTest == 1){
@@ -54,6 +55,7 @@ int main(){
 					printf("--------------------------------------------------\n");
 					currentImage = fopen(DEFAULT_FILE, "r");
 					imgProcessTest = imgProcess(currentImage, &lengthX, &lengthY, MAX_RESOLUTION, imageData);
+					fclose(currentImage);
 				}
 				break;
 			case 2:
@@ -399,10 +401,6 @@ void rotateCurrentImage(int lengthX, int lengthY, int maxRes, int imgArray[][max
 			imgEdited[col][row] = imgArray[lengthY - 1 - row][col];
 		}
 	}
-	
-	/*Displays the rotated image and 
-	displayImage(lengthY, lengthX, maxRes, imgEdited, 0);
-	saveImage(lengthY, lengthX, maxRes, imgEdited);*/
 }
 
 void saveImage(int lengthX, int lengthY, int maxRes, int imgArray[][maxRes]){
